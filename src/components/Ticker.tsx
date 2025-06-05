@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import type { CoinPrice, OkxMarketData } from '../@types/coin';
+import { useCoinListStore } from '../store/coin-store.ts';
 import TickerCoin from './TickerCoin';
 
 interface CoinState {
@@ -58,10 +59,11 @@ function coinReducer(state: CoinState, action: CoinReducerUpdateAction | CoinRed
 }
 const startingCoinState = { last: '0', ask: '0', bid: '0', high: '0', low: '0' };
 
-export default function Ticker({ symbols }: { symbols: string[] }) {
+export default function Ticker() {
   const [coinState, coinDispatch] = useReducer(coinReducer, {});
   const wsRef = useRef<WebSocket | null>(null);
   const prevSymbolsRef = useRef<string[]>([]);
+  const { selectedCoins } = useCoinListStore();
   // FOR TESTING
   const [isConnected, setIsConnected] = useState(true);
 
@@ -152,7 +154,7 @@ export default function Ticker({ symbols }: { symbols: string[] }) {
   }, []);
 
   useEffect(() => {
-    if (!isConnected || !symbols.length) {
+    if (!isConnected || !selectedCoins.length) {
       if (wsRef.current && wsRef.current.readyState !== WebSocket.CLOSED) {
         wsRef.current.close();
         wsRef.current = null;
@@ -160,15 +162,15 @@ export default function Ticker({ symbols }: { symbols: string[] }) {
       return;
     }
     if (!wsRef.current || wsRef.current.readyState === WebSocket.CLOSED) {
-      connect(symbols);
+      connect(selectedCoins);
     } else if (wsRef.current.readyState === WebSocket.OPEN) {
-      subscribe(symbols);
+      subscribe(selectedCoins);
     }
 
     return () => {
-      prevSymbolsRef.current = symbols;
+      prevSymbolsRef.current = selectedCoins;
     };
-  }, [symbols, connect, subscribe, isConnected]);
+  }, [selectedCoins, connect, subscribe, isConnected]);
 
   return (
     <>
