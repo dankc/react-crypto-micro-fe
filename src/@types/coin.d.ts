@@ -41,6 +41,15 @@ interface OkxErrorResponse {
   connId: string;
 }
 
+interface OkxUnsubResponse {
+  arg: {
+    channel: string;
+    instId: string;
+  };
+  connId: string;
+  event: 'unsubscribe';
+}
+
 interface OkxInstrumentData {
   auctionEndTime: string;
   baseCcy: string;
@@ -85,4 +94,4 @@ interface NamedOkxInstrumentData extends OkxInstrumentData {
   name?: string;
 }
 
-export { CoinPrice, OkxMarketData, OkxInstrumentData, NamedOkxInstrumentData, OkxWsResponse, OkxErrorResponse };
+export { CoinPrice, OkxMarketData, OkxInstrumentData, NamedOkxInstrumentData, OkxWsResponse, OkxErrorResponse, OkxUnsubResponse };
