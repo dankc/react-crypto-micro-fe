@@ -19,7 +19,7 @@ const TickerCoin = React.memo(({ coin }: { coin: CoinPrice }) => {
   }, [last]);
 
   return (
-    <div className="coin-stats flex flex-wrap gap-2 my-8 mx-auto max-w-2xl">
+    <div className="coin-stats flex flex-wrap gap-2 my-8 mx-auto w-full">
       <h2 className="flex-1-0 w-full center text-2xl font-bold">{id}</h2>
       <div className="flex-1-0 w-full">
         Last price: <span className={`${colorClass} font-bold`}>${formatPrice(last)}</span>

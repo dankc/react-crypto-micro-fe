@@ -1,6 +1,7 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import tailwindcss from '@tailwindcss/vite'
+import { defineConfig } from 'vite';
+import { fileURLToPath, URL } from 'node:url';
+import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
 import federation from '@originjs/vite-plugin-federation';
 
 // https://vite.dev/config/
@@ -17,6 +18,11 @@ export default defineConfig({
       shared: ['react', 'react-dom'],
     }),
   ],
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+    },
+  },
   build: {
     target: 'esnext',
     minify: false,
@@ -25,4 +31,4 @@ export default defineConfig({
   server: {
     port: 3000,
   },
-})
+});

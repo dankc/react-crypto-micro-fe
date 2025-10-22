@@ -12,7 +12,7 @@ function App() {
   }, []);
 
   return (
-    <main>
+    <main className="h-dvh p-8 relative">
       <h1>Crypto Tracker</h1>
       {coinList.length && <CoinList />}
       {selectedCoins.length && <Ticker />}
