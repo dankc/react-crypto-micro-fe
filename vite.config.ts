@@ -1,7 +1,10 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import tailwindcss from '@tailwindcss/vite'
-import federation from '@originjs/vite-plugin-federation';
+import { defineConfig } from 'vite';
+import { fileURLToPath, URL } from 'node:url';
+import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
+import { federation } from '@module-federation/vite';
+import cssInjectedByJs from 'vite-plugin-css-injected-by-js';
+import { dependencies } from './package.json';
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -9,20 +12,33 @@ export default defineConfig({
     react(),
     tailwindcss(),
     federation({
-      name: 'react-app',
+      name: 'react_app',
       filename: 'remoteEntry.js',
       exposes: {
-        './App': './src/App.tsx',
+        './App': './src/main.tsx',
       },
-      shared: ['react', 'react-dom'],
+      shared: {
+        react: { singleton: true, requiredVersion: dependencies.react },
+        'react-dom': { singleton: true, requiredVersion: dependencies['react-dom'] },
+      },
+    }),
+    cssInjectedByJs({
+      jsAssetsFilterFunction: (outputChunk) => outputChunk.fileName === 'remoteEntry.js',
     }),
   ],
+  base: './',
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+    },
+  },
   build: {
     target: 'esnext',
-    minify: false,
+    minify: true,
     cssCodeSplit: false,
   },
   server: {
-    port: 3000,
+    port: 3001,
+    origin: 'http://localhost:3001',
   },
-})
+});

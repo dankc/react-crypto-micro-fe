@@ -31,12 +31,14 @@ const useCoinListStore = create<CoinListStore>()(
           // Only show coins with USDT pair
           const usdtPairs = allCoins.filter((coinObj: OkxInstrumentData) => coinObj.quoteCcy === 'USDT');
 
+          // @@TODO check if a coin has been delisted and remove it from the list
           const joinedData = usdtPairs
             .map((entry: OkxInstrumentData) => {
               const name = dictionary.find((coin) => coin.symbol.toUpperCase() === entry.baseCcy)?.name;
               return { ...entry, name };
             })
             .filter((coinObj: NamedOkxInstrumentData) => 'name' in coinObj); // Only display coins with a name
+
           set((state) =>
             !state.selectedCoins.length
               ? { selectedCoins: [...defaultSymbols], coinList: [...joinedData] }
