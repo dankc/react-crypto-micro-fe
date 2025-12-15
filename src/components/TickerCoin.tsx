@@ -1,11 +1,15 @@
 import type { CoinPrice } from '../@types/coin';
 import React, { useRef, useEffect } from 'react';
+import dictionary from '../data/coin-dictionary.json';
 
 const TickerCoin = React.memo(({ coin }: { coin: CoinPrice }) => {
   const { last, bid, ask, high, low, id } = coin;
+  const dict = dictionary.find((entry) => {
+    return entry.symbol === id?.split('-')[0];
+  });
   const prevPriceRef = useRef<number | null>(null);
 
-  const colorClass = prevPriceRef.current === null || +last >= prevPriceRef.current ? 'text-green-500' : 'text-red-500';
+  const colorClass = prevPriceRef.current === null || +last >= prevPriceRef.current ? 'text-green-600' : 'text-red-500';
   const formatPrice = (price: string): string => {
     if (+price < 0.01) return price;
     if (+price < 1) return Number(price).toFixed(4);
@@ -19,22 +23,29 @@ const TickerCoin = React.memo(({ coin }: { coin: CoinPrice }) => {
   }, [last]);
 
   return (
-    <div className="coin-stats flex flex-wrap gap-2 my-8 mx-auto w-full">
-      <h2 className="flex-1-0 w-full center text-2xl font-bold">{id}</h2>
-      <div className="flex-1-0 w-full">
-        Last price: <span className={`${colorClass} font-bold`}>${formatPrice(last)}</span>
+    <div className="bg-[rgb(from_white_r_g_b_/_0.8)] text-black rounded-2xl p-8">
+      <h2 className="mb-2 text-4xl text-center font-bold">
+        {dict?.name || 'Not available'}
+        <span className="block text-lg text-center text-gray-700">({id})</span>
+      </h2>
+      <div className="mb-4 text-center text-xl">
+        Last price: <span className={`${colorClass} font-bold font-mono`}>${formatPrice(last)}</span>
       </div>
-      <div>
-        Bid: <span>${formatPrice(bid)}</span>
+      <div className="flex justify-between">
+        <span>
+          Bid: <span className="font-mono">${formatPrice(bid)}</span>
+        </span>
+        <span>
+          Ask: <span className="font-mono">${formatPrice(ask)}</span>
+        </span>
       </div>
-      <div>
-        Ask: <span>${formatPrice(ask)}</span>
-      </div>
-      <div>
-        24h High: <span className="text-green-500">${formatPrice(high)}</span>
-      </div>
-      <div>
-        24h Low: <span className="text-red-500">${formatPrice(low)}</span>
+      <div className="flex justify-between">
+        <span>
+          24h High: <span className="text-green-600 font-mono">${formatPrice(high)}</span>
+        </span>
+        <span>
+          24h Low: <span className="text-red-500 font-mono">${formatPrice(low)}</span>
+        </span>
       </div>
     </div>
   );

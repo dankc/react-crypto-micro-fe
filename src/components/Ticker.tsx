@@ -79,6 +79,7 @@ export default function Ticker() {
   const unsubscribedCoinsRef = useRef<Set<string>>(new Set());
   const { selectedCoins } = useCoinListStore();
   // FOR TESTING
+  const isDev = process.env.NODE_ENV === 'development';
   const [isConnected, setIsConnected] = useState(true);
 
   const subscribe = useCallback(
@@ -200,12 +201,18 @@ export default function Ticker() {
 
   return (
     <>
-      <div className="controls">
-        <button onClick={() => setIsConnected(() => !isConnected)}>{isConnected ? 'Stop WebSocket' : 'Start WebSocket'}</button>
-      </div>
-      {Object.values(coinState).map((coin) => (
-        <TickerCoin key={`ticker-${coin.id}`} coin={coin} />
-      ))}
+      {isDev && (
+        <div className="max-w-7xl mb-4 mx-auto">
+          <button onClick={() => setIsConnected(() => !isConnected)}>{isConnected ? 'Stop WebSocket' : 'Start WebSocket'}</button>
+        </div>
+      )}
+      {Object.keys(coinState).length && (
+        <section className="max-w-7xl mx-auto mt-12 grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-6">
+          {Object.values(coinState).map((coin) => (
+            <TickerCoin key={`ticker-${coin.id}`} coin={coin} />
+          ))}
+        </section>
+      )}
     </>
   );
 }
