@@ -21,6 +21,9 @@ export default defineConfig({
         react: { singleton: true, requiredVersion: dependencies.react },
         'react-dom': { singleton: true, requiredVersion: dependencies['react-dom'] },
       },
+      dts: {
+        tsConfigPath: './tsconfig.app.json',
+      }
     }),
     cssInjectedByJs({
       jsAssetsFilterFunction: (outputChunk) => outputChunk.fileName === 'remoteEntry.js',
