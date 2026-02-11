@@ -11,9 +11,10 @@ export default function CoinList() {
   const [searchList, setSearchList] = useState<NamedOkxInstrumentData[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const modalRef = useRef<HTMLElement>(null);
+  const orderedCoins = Array.from(new Set([...coinList.filter(coin => selectedCoins.includes(coin.baseCcy)), ...coinList]));
 
   const portalRoot = document.getElementById('crypto-app')!;
-  // @@TODO add sorting so selected coins are at the beginning of the non-search list
+
   function toggleList() {
     setListVisibility(!isListVisible);
   }
@@ -96,7 +97,7 @@ export default function CoinList() {
               {searchList.length > 0 && <hr className="my-8" />}
 
               <ul className="flex flex-wrap list-none gap-4 overflow-y-auto" tabIndex={isListVisible ? 0 : -1}>
-                {coinList.map((coinObj: NamedOkxInstrumentData) => (
+                {orderedCoins.map((coinObj: NamedOkxInstrumentData) => (
                   <li key={coinObj.baseCcy}>
                     <button
                       className={`${selectedCoins.includes(coinObj.baseCcy) ? 'bg-white text-black' : ''} py-2 cursor-pointer`}

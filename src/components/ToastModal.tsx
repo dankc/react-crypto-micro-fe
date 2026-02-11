@@ -15,7 +15,7 @@ export default function ToastModal({ isActive, toggleFn, asideRef, children }: P
   }
 
   return (
-    <div className={`${isActive ? 'absolute' : 'static'} top-0 right-0 bottom-0 left-0`} ref={backdrop} onClick={closeToast}>
+    <div className={`${isActive ? 'absolute' : 'static'} top-0 right-0 bottom-0 left-0 z-1`} ref={backdrop} onClick={closeToast}>
       <aside
         ref={asideRef}
         className={`w-85/100 md:w-xs max-h-[calc(100%-var(--header-height,0))] h-full p-4 fixed bottom-0 right-0 bg-[#242424] shadow-[-5px_0_10px_black] transition-transform duration-200 ease-in-out ${!isActive && 'translate-x-full'}`}

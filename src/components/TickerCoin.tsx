@@ -23,11 +23,17 @@ const TickerCoin = React.memo(({ coin }: { coin: CoinPrice }) => {
   }, [last]);
 
   return (
-    <div className="bg-[rgb(from_white_r_g_b_/_0.8)] text-black rounded-2xl p-8">
+    <div className={'bg-[rgb(from_white_r_g_b/0.8)] text-black rounded-2xl p-8 relative overflow-hidden'}>
+      <div
+        className={`block absolute w-full top-0 left-0 bottom-0 bg-size-[10%] bg-repeat before:backdrop-grayscale-100 before:absolute before:w-full before:top-0 before:left-0 before:bottom-0`}
+        style={{ backgroundImage: `url(${dict?.logo})`, zIndex: -1 }}
+      ></div>
+
       <h2 className="mb-2 text-4xl text-center font-bold">
         {dict?.name || 'Not available'}
         <span className="block text-lg text-center text-gray-700">({id})</span>
       </h2>
+
       <div className="mb-4 text-center text-xl">
         Last price: <span className={`${colorClass} font-bold font-mono`}>${formatPrice(last)}</span>
       </div>
