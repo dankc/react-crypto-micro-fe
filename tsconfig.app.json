@@ -24,7 +24,8 @@
     "noUncheckedSideEffectImports": true,
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+    "rootDir": "./src"
   },
   "include": ["src"],
   "exclude": ["./src/components/CoinListTest.tsx", "./src/components/DictionaryTest.tsx"]
