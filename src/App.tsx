@@ -13,7 +13,7 @@ function App() {
   }, []);
 
   return (
-    <main className="min-h-full px-8 py-16 relative" id="crypto-app">
+    <main className="min-h-full px-8 py-16 relative z-0" id="crypto-app">
       <Header />
       <section className="max-w-5xl mx-auto my-12">
         <p>
@@ -25,8 +25,12 @@ function App() {
         </p>
       </section>
       <section className="max-w-7xl my-12 mx-auto flex gap-x-4 justify-end items-center">
-        <strong>Find your coin</strong>
-        {coinList.length && <CoinList />}
+        {coinList.length ? (
+          <>
+            <strong>Find your coin</strong>
+            <CoinList />
+          </>
+        ) : null}
         {/*Going to add a menu later*/}
         {/*<button>*/}
         {/*  <MenuIcon className="w-[32px] h-[32px] fill-white" />*/}
