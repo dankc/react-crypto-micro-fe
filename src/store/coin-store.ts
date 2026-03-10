@@ -10,7 +10,15 @@ interface CoinListStore {
   initialize: () => void;
   toggleCoin: (coin: string) => void;
 }
+
+function isValidState(state: unknown): asserts state is { selectedCoins: string[] } {
+  if (typeof state !== 'object' || state === null) {
+    throw new Error('Invalid state');
+  }
+}
+
 const defaultSymbols = ['BTC', 'ETH', 'XRP', 'SOL', 'DOGE'];
+
 async function fetchCoinList() {
   const data = await fetch('https://www.okx.com/api/v5/public/instruments?instType=SPOT', {
     method: 'GET',
@@ -41,13 +49,11 @@ const useCoinListStore = create<CoinListStore>()(
       (set, get) => ({
         selectedCoins: [],
         coinList: [],
-        initialize: () => {
-          const { coinList } = get();
-          set((state) =>
-            !state.selectedCoins.length
-              ? { selectedCoins: [...defaultSymbols], coinList: [...coinList] }
-              : { coinList: [...coinList] }
-          );
+        initialize: async () => {
+          const { selectedCoins } = get();
+          if (!selectedCoins.length) {
+            set({ selectedCoins: [...defaultSymbols] });
+          }
         },
         toggleCoin: (coin: string) =>
           set((state) => ({
@@ -62,9 +68,10 @@ const useCoinListStore = create<CoinListStore>()(
           getItem: async (name) => {
             // Check if a previously selected coin has been delisted and remove it
             const coinBackup = localStorage.getItem(name);
-            if( coinBackup ) {
+            if (coinBackup) {
               const parsedBackup = JSON.parse(coinBackup);
               const allCoins = await fetchCoinList();
+
               const hydratedState = {
                 state: {
                   selectedCoins: [],
@@ -88,6 +95,14 @@ const useCoinListStore = create<CoinListStore>()(
             localStorage.removeItem(name);
           },
         })),
+        version: 1,
+        migrate: (persistedState: unknown, version: number) => {
+          isValidState(persistedState);
+          if (version === 0 && persistedState && !persistedState.selectedCoins) {
+            persistedState.selectedCoins = [];
+          }
+          return persistedState;
+        },
       }
     )
   )

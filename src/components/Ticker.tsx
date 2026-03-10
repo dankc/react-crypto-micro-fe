@@ -74,13 +74,14 @@ const startingCoinState = { last: '0', ask: '0', bid: '0', high: '0', low: '0' }
 
 export default function Ticker() {
   const [coinState, coinDispatch] = useReducer(coinReducer, {});
+  const [isConnected, setIsConnected] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);
   const prevSymbolsRef = useRef<string[]>([]);
   const unsubscribedCoinsRef = useRef<Set<string>>(new Set());
   const { selectedCoins } = useCoinListStore();
   // FOR TESTING
   const isDev = process.env.NODE_ENV === 'development';
-  const [isConnected, setIsConnected] = useState(true);
+  const manualControlRef = useRef(false);
 
   const subscribe = useCallback(
     (newSymbols: string[]) => {
@@ -126,71 +127,72 @@ export default function Ticker() {
     [prevSymbolsRef]
   );
 
-  const connect = useCallback(
-    (symbols: string[]) => {
-      const okxHost = 'wss://ws.okx.com:8443/ws/v5/public';
+  const connect = useCallback(() => {
+    const okxHost = 'wss://ws.okx.com:8443/ws/v5/public';
 
-      wsRef.current = new WebSocket(okxHost);
-      wsRef.current.onopen = () => {
-        subscribe(symbols);
-      };
-      wsRef.current.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        if (data.event === 'unsubscribe') {
-          coinDispatch({ type: 'REMOVE_COIN', payload: data.arg.instId });
-          unsubscribedCoinsRef.current.delete(data.arg.instId);
-        } else if (data.data && data.data.length > 0) {
-          const coinData: OkxMarketData = data.data[0];
-          const { askPx, bidPx, high24h, low24h, last, instId } = coinData;
-          if (!unsubscribedCoinsRef.current.has(instId)) {
-            coinDispatch({
-              type: 'UPDATE_COIN',
-              payload: {
-                symbol: instId,
-                data: { ask: askPx, bid: bidPx, last, high: high24h, low: low24h, id: instId },
-              },
-            });
-          }
+    wsRef.current = new WebSocket(okxHost);
+    wsRef.current.onopen = () => {
+      setIsConnected(true);
+      manualControlRef.current = false;
+    };
+    wsRef.current.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.event === 'unsubscribe') {
+        coinDispatch({ type: 'REMOVE_COIN', payload: data.arg.instId });
+        unsubscribedCoinsRef.current.delete(data.arg.instId);
+      } else if (data.data && data.data.length > 0) {
+        const coinData: OkxMarketData = data.data[0];
+        const { askPx, bidPx, high24h, low24h, last, instId } = coinData;
+        if (!unsubscribedCoinsRef.current.has(instId)) {
+          coinDispatch({
+            type: 'UPDATE_COIN',
+            payload: {
+              symbol: instId,
+              data: { ask: askPx, bid: bidPx, last, high: high24h, low: low24h, id: instId },
+            },
+          });
         }
-      };
-      wsRef.current.onclose = () => {
-        wsRef.current = null;
-        unsubscribedCoinsRef.current.clear();
-      };
-      wsRef.current.onerror = (event: Event) => {
-        setIsConnected(false);
-        wsRef.current?.close();
-        wsRef.current = null;
-        unsubscribedCoinsRef.current.clear();
-        console.error(event);
-      };
-    },
-    [subscribe, coinDispatch]
-  );
+      }
+    };
+    wsRef.current.onclose = () => {
+      wsRef.current = null;
+      unsubscribedCoinsRef.current.clear();
+      setIsConnected(false);
+    };
+    wsRef.current.onerror = (event: Event) => {
+      setIsConnected(false);
+      wsRef.current?.close();
+      wsRef.current = null;
+      unsubscribedCoinsRef.current.clear();
+      console.error(event);
+    };
+  }, [coinDispatch]);
+
+  const toggleWebsocket = () => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      manualControlRef.current = true;
+      wsRef.current?.close();
+    } else {
+      manualControlRef.current = true;
+      connect();
+    }
+  };
 
   useEffect(() => {
     return () => {
       if (wsRef.current && wsRef.current.readyState !== WebSocket.CLOSED) {
         wsRef.current.close();
-        wsRef.current = null;
       }
     };
   }, []);
 
   useEffect(() => {
     coinDispatch({ type: 'SYNC_COINS', payload: selectedCoins });
-    if (!isConnected || !selectedCoins.length) {
-      if (wsRef.current && wsRef.current.readyState !== WebSocket.CLOSED) {
-        wsRef.current.close();
-        wsRef.current = null;
-      }
-      return () => {
-        prevSymbolsRef.current = selectedCoins;
-      };
-    }
-    if (!wsRef.current || wsRef.current.readyState === WebSocket.CLOSED) {
-      connect(selectedCoins);
-    } else if (wsRef.current.readyState === WebSocket.OPEN) {
+    const shouldConnect = !wsRef.current || wsRef.current.readyState === WebSocket.CLOSED;
+
+    if (shouldConnect && !manualControlRef.current) {
+      connect();
+    } else if (isConnected && wsRef.current?.readyState === WebSocket.OPEN) {
       subscribe(selectedCoins);
     }
 
@@ -203,7 +205,7 @@ export default function Ticker() {
     <>
       {isDev && (
         <div className="max-w-7xl mb-4 mx-auto">
-          <button onClick={() => setIsConnected(() => !isConnected)}>{isConnected ? 'Stop WebSocket' : 'Start WebSocket'}</button>
+          <button onClick={() => toggleWebsocket()}>{isConnected ? 'Stop WebSocket' : 'Start WebSocket'}</button>
         </div>
       )}
       {Object.keys(coinState).length && (
